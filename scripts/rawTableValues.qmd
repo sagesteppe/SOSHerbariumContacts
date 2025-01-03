@@ -1,0 +1,62 @@
+---
+title: "Seeds of Success herbarium shipping information"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = F)
+```
+
+```{r load libraries}
+library(knitr)
+library(kableExtra)
+library(tidyverse)
+```
+
+```{r Import data}
+
+appF <- read.csv('../data/AppendixF/AppendixForiginal.csv') |>
+  mutate(across(where(is.character), ~ na_if(., "")))
+
+ob <- bind_rows(
+  read.csv('../data/Contacts/IHContacts.csv'),
+  read.csv('../data/Contacts/AgencyContacts.csv', na.string = "")
+) |>
+  mutate(postalCountry = 'U.S.A.')
+
+tab <- left_join(appF, ob, by = 'code') %>% 
+  unite(col = 'Person', firstName, lastName, na.rm = TRUE, sep = " ") |>
+  unite(col = "Contact",  Person, phone, email, na.rm=TRUE, sep = "<br>") |>
+  unite(col = 'locAddress', postalCity, postalState, postalZipCode, na.rm=TRUE, sep = " ") |>
+  unite(col = "Address",  organization, department, postalStreet, locAddress, na.rm=TRUE, sep = "<br>") |>
+  
+  # now shorten up some values 
+  mutate(
+    across(.cols = everything(), ~ str_replace(.x, '[\n]' , ' ')),
+    state = if_else(is.na(state), 'OT', state),
+    Use = if_else(herbariumUse == 'Regional', 'R', 'L'), 
+    code = if_else(str_detect(code, 'BLM'), '', code),
+    across(.cols = Contact:Address, ~ str_trim(.x, side = 'both'))
+    ) |> 
+  select(state, collectorCode, Use, code, Address, Contact)
+
+```
+
+
+
+```{r Combine places within the same state with the same regional herbarium}
+
+tab |> 
+  mutate(Use = factor(Use, levels = c('R', 'L'))) |>
+  group_by(state, Use, code) |>
+  arrange(state, Use, code) |>
+  mutate_all(linebreak) %>%
+  knitr::kable(format="html", escape = F, 
+               col.names = c('State', 'Crew', 'Use', 'IH Code', 'Address', 'Contact')) |>
+  kableExtra::collapse_rows(valign = 'middle') %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "condensed", "responsive")) |>
+  kableExtra::footnote('* Default for all unspecified crews')
+```
+
+
