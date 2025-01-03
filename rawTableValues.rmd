@@ -55,7 +55,7 @@ tab |>
   knitr::kable(format="html", escape = F, 
                col.names = c('State', 'Crew', 'Use', 'IH Code', 'Address', 'Contact')) |>
   kableExtra::collapse_rows(valign = 'middle') %>%
-  kableExtra::kable_styling(bootstrap_options = c("striped", "condensed", "responsive")) |>
+  kableExtra::kable_styling(bootstrap_options = c("condensed", "responsive")) |>
   kableExtra::footnote('* Default for all unspecified crews')
 ```
 
