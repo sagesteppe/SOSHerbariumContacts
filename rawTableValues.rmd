@@ -2,9 +2,6 @@
 title: "Seeds of Success herbarium shipping information"
 output:
   html_document: default
-  compress_html:
-  clippings: all
-  blanklines: true
 ---
 
 ```{r setup, include=FALSE}
